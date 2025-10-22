@@ -1,6 +1,6 @@
 namespace QuizzGenerate.Repository;
 
-public class IGeminiRepository
+public interface IGeminiRepository
 {
-    
+    IAsyncEnumerable<string> QuestionPrompt(string question);
 }
