@@ -4,5 +4,5 @@ namespace QuizzGenerate.Service;
 
 public interface IGeminiService
 {
-    IAsyncEnumerable<string> GenerateQuestion(QuestionPrompt question);
+    Task<QuestionDto> GenerateQuestion(QuestionPrompt question);
 }

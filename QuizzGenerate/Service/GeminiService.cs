@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using QuizzGenerate.Dto;
 using QuizzGenerate.Repository;
 
@@ -11,7 +12,7 @@ public class GeminiService: IGeminiService
     {
         _repository = repository;
     }
-    public async IAsyncEnumerable<string> GenerateQuestion(QuestionPrompt question)
+    public async Task<QuestionDto> GenerateQuestion(QuestionPrompt question)
     {
         StringBuilder sb = new StringBuilder();
         sb.Append("Sigue las siguientes instrucciones.");
@@ -46,9 +47,32 @@ public class GeminiService: IGeminiService
             "Con las consideraciones anteriores debes de generar una pregunta con sus respectivas respuestas en el formato JSON mencionado anteriormente");
         sb.Append("El tema con el que debes generar la pregunta es: " + question.topic);
 
-        await foreach (var response in _repository.QuestionPrompt(sb.ToString()))
+        string rawResponse = await _repository.QuestionPrompt(sb.ToString());
+        string cleanedJson = rawResponse
+            .Replace("```json", "")
+            .Replace("```", "")
+            .Trim();
+
+        try
         {
-            yield return response;
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            var result = JsonSerializer.Deserialize<QuestionDto>(cleanedJson, options);
+            if (result == null)
+            {
+                return new QuestionDto { Error = true, Explication = "Error interno: El formato JSON retornado por el modelo no es válido." };
+            }
+
+            return result;
+        }
+        catch (JsonException e)
+        {
+            // Manejo de error si el string no pudo ser parseado como JSON
+            Console.WriteLine($"Error de Deserialización JSON: {e.Message}");
+            Console.WriteLine($"JSON fallido: {cleanedJson}");
+            return new QuestionDto { Error = true, Explication = $"Error: {e.Message}"};
         }
     }
 }

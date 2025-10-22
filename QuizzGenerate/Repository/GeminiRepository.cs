@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.Extensions.Options;
 using Mscc.GenerativeAI;
 using QuizzGenerate.Models;
@@ -13,10 +14,13 @@ public class GeminiRepository: IGeminiRepository
         _geminiApiKey = options.Value.ApiGen;
     }
     
-    public async IAsyncEnumerable<string> QuestionPrompt(string question)
+    public async Task<string> QuestionPrompt(string question)
     {
         var googleApi = new GoogleAI(apiKey: _geminiApiKey);
         var model = googleApi.GenerativeModel(model: Model.Gemini25Flash);
+        
+        var jsonResponseBuilder = new StringBuilder();
+        
         await foreach (var response in model.GenerateContentStream(question))
         {
             foreach (var candidate in response.Candidates)
@@ -25,10 +29,12 @@ public class GeminiRepository: IGeminiRepository
                 {
                     if (!string.IsNullOrEmpty(part.Text))
                     {
-                        yield return part.Text;
+                        jsonResponseBuilder.Append(part.Text);
                     }
                 }
             }
         }
+        
+        return jsonResponseBuilder.ToString();
     }
 }

@@ -26,13 +26,12 @@ public class QuizzGeneratorController : ControllerBase
             return BadRequest("Topic is empty or too short");
         }
         
-        Response.ContentType = "text/plain; charset=utf-8";
-        await foreach (var response in _apiService.GenerateQuestion(prompt))
+        var question =  await _apiService.GenerateQuestion(prompt);
+        if (question.Error)
         {
-            await Response.WriteAsync(response);
-            await Response.Body.FlushAsync();
+            return StatusCode(500, question);
         }
         
-        return NoContent();
+        return Ok(question);
     }
 }
