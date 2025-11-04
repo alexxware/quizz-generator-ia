@@ -12,7 +12,7 @@ public class GeminiService: IGeminiService
     {
         _repository = repository;
     }
-    public async Task<QuestionDto> GenerateQuestion(QuestionPrompt question)
+    public async Task<QuestionResponse> GenerateQuestion(QuestionPrompt question)
     {
         StringBuilder sb = new StringBuilder();
         sb.Append("Sigue las siguientes instrucciones.");
@@ -29,8 +29,7 @@ public class GeminiService: IGeminiService
                         answare4: "answare 4",
                         idAnsware4: 'D',
                         idAnswareCorrect:'B',
-                        explication: 'explicacion sobre la pregunta',
-                        error: false
+                        explication: 'explicacion sobre la pregunta'
                       }
                       """;
         sb.Append(json);
@@ -44,7 +43,7 @@ public class GeminiService: IGeminiService
         }
 
         sb.Append(
-            "Con las consideraciones anteriores debes de generar una pregunta con sus respectivas respuestas en el formato JSON mencionado anteriormente");
+            "Con las consideraciones anteriores debes de generar 5 preguntas con sus respectivas respuestas en el formato JSON mencionado anteriormente, ten en cuenta que siempre debe tener formato de lista");
         sb.Append("El tema con el que debes generar la pregunta es: " + question.topic);
 
         string rawResponse = await _repository.QuestionPrompt(sb.ToString());
@@ -59,20 +58,45 @@ public class GeminiService: IGeminiService
             {
                 PropertyNameCaseInsensitive = true
             };
-            var result = JsonSerializer.Deserialize<QuestionDto>(cleanedJson, options);
-            if (result == null)
+            List<QuestionDto>? result = JsonSerializer.Deserialize<List<QuestionDto>>(cleanedJson, options);
+            if (result is null)
             {
-                return new QuestionDto { Error = true, Explication = "Error interno: El formato JSON retornado por el modelo no es válido." };
+                return new QuestionResponse
+                {
+                    HasError = true,
+                    ErrorDescription = "No se generaron correctamente las preguntas",
+                    Questions = new List<QuestionDto>()
+                };
             }
 
-            return result;
+            return new QuestionResponse
+            {
+                HasError = false,
+                ErrorDescription = string.Empty,
+                Questions = result
+            };
+        }
+        catch (ArgumentNullException nu)
+        {
+            // Manejo de error si el string no pudo ser parseado como JSON
+            Console.WriteLine($"Error de Deserialización JSON: {nu.Message}");
+            Console.WriteLine($"JSON fallido: {cleanedJson}");
+            return new QuestionResponse
+            {
+                HasError = true,
+                ErrorDescription = nu.Message
+            };
         }
         catch (JsonException e)
         {
             // Manejo de error si el string no pudo ser parseado como JSON
             Console.WriteLine($"Error de Deserialización JSON: {e.Message}");
             Console.WriteLine($"JSON fallido: {cleanedJson}");
-            return new QuestionDto { Error = true, Explication = $"Error: {e.Message}"};
+            return new QuestionResponse
+            {
+                HasError = true,
+                ErrorDescription = e.Message
+            };
         }
     }
 }

@@ -27,7 +27,7 @@ public class QuizzGeneratorController : ControllerBase
         }
         
         var question =  await _apiService.GenerateQuestion(prompt);
-        if (question.Error)
+        if (question.HasError)
         {
             return StatusCode(500, question);
         }

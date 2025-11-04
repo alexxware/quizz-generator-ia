@@ -26,6 +26,5 @@ public class QuestionDto
     public string IdAnswareCorrect { get; set; }
     [JsonPropertyName("explication")]
     public string Explication { get; set; }
-    [JsonPropertyName("error")]
-    public bool Error { get; set; }
+
 }
