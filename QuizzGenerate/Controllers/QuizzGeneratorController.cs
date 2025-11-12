@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using QuizzGenerate.Dto;
-using QuizzGenerate.Models;
 using QuizzGenerate.Service;
 
 namespace QuizzGenerate.Controllers;
