@@ -1,4 +1,6 @@
 using FluentValidation;
+using Microsoft.Extensions.Options;
+using QuizzGenerate.Configuration;
 using QuizzGenerate.Dto.register;
 using QuizzGenerate.Mappers;
 using QuizzGenerate.Models;
@@ -43,6 +45,22 @@ builder.Services.AddScoped<ISupabaseRepository, SupabaseRepository>();
 builder.Services.AddScoped<IValidator<RegisterRequestDto>, RegisterUserValidator>();
 
 // SUPABASE
+builder.Services.Configure<SupabaseSettings>(
+    builder.Configuration.GetSection("Supabase"));
+
+builder.Services.AddScoped<Client>(sp =>
+{
+    var config = sp.GetRequiredService<IOptions<SupabaseSettings>>().Value;
+    var options = new SupabaseOptions
+    {
+        AutoRefreshToken = true,
+        AutoConnectRealtime = true
+    };
+    var client = new Client(config.Url, config.AnonKey, options);
+    client.InitializeAsync().Wait();
+    return client;
+});
+/*
 builder.Services.AddScoped<Supabase.Client>(_ => new Client(
     builder.Configuration["Supabase:Url"],
     builder.Configuration["Supabase:SupKey"],
@@ -52,6 +70,7 @@ builder.Services.AddScoped<Supabase.Client>(_ => new Client(
         AutoConnectRealtime = true
     }
     ));
+*/
 
 // AUTO MAPPER
 builder.Services.AddAutoMapper(typeof(MappingProfile));

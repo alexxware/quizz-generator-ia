@@ -24,11 +24,11 @@ public class SupabaseService: ISupabaseService
             return new RegisterResponseDto
             {
                 HasError = true,
-                ErrorMessage = "Ocurrio un error al intentar registrar al usuario;"
+                ErrorMessage = "Ocurrio un error al intentar registrar al usuario"
             };
         }
         
-        /*user.IdAuth = response;
+        user.IdAuth = response;
 
         var mappedUser = _mapper.Map<TblUsers>(user);
 
@@ -36,7 +36,5 @@ public class SupabaseService: ISupabaseService
 
         var resMapped = _mapper.Map<RegisterResponseDto>(res);
         return resMapped;
-        */
-        return new RegisterResponseDto();
     }
 }
