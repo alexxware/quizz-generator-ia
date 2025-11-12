@@ -29,8 +29,8 @@ public class RegisterController : ControllerBase
             return BadRequest(validationResult.Errors);
         }
 
-        var response = supabaseService.RegisterUser(user);
-        if (response.Name == string.Empty)
+        var response = await supabaseService.SignUpUser(user);
+        if (response.HasError)
         {
             return Conflict();
         }

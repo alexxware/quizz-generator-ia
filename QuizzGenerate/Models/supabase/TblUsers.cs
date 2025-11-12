@@ -1,9 +1,10 @@
 using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
 
 namespace QuizzGenerate.Models.supabase;
 
-[System.ComponentModel.DataAnnotations.Schema.Table("tblusers")]
-public class TblUser
+[Table("tblusers")]
+public class TblUsers: BaseModel
 {
     [PrimaryKey("id", false)]
     public long Id { get; set; }
@@ -13,12 +14,10 @@ public class TblUser
     public string LastName { get; set; }
     [Column("email")]
     public string Email { get; set; }
-    [Column("password")]
-    public string Password { get; set; }
-    [Column("is_verified")]
-    public int IsVerified { get; set; }
     [Column("created_at")]
     public DateTime CreatedAt { get; set; }
     [Column("status")]
     public string Status { get; set; }
+    [Column("id_auth")] 
+    public string IdAuth { get; set; }
 }

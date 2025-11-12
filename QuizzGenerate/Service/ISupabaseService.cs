@@ -4,5 +4,5 @@ namespace QuizzGenerate.Service;
 
 public interface ISupabaseService
 {
-    RegisterResponseDto RegisterUser(RegisterRequestDto user);
+    Task<RegisterResponseDto> SignUpUser(RegisterRequestDto user);
 }

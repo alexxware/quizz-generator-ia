@@ -1,7 +1,9 @@
 using FluentValidation;
 using QuizzGenerate.Dto.register;
+using QuizzGenerate.Mappers;
 using QuizzGenerate.Models;
 using QuizzGenerate.Repository;
+using QuizzGenerate.Repository.supabase;
 using QuizzGenerate.Service;
 using QuizzGenerate.Validators;
 using Supabase;
@@ -30,9 +32,12 @@ builder.Services.AddCors(option =>
 
 // SERVICES
 builder.Services.Configure<ApiKeysOptions>(builder.Configuration.GetSection("ApiKeys"));
-builder.Services.AddScoped<IGeminiRepository, GeminiRepository>();
 builder.Services.AddScoped<IGeminiService, GeminiService>();
 builder.Services.AddScoped<ISupabaseService, SupabaseService>();
+
+// REPOSITORY
+builder.Services.AddScoped<IGeminiRepository, GeminiRepository>();
+builder.Services.AddScoped<ISupabaseRepository, SupabaseRepository>();
 
 // VALIDATORS
 builder.Services.AddScoped<IValidator<RegisterRequestDto>, RegisterUserValidator>();
@@ -47,6 +52,9 @@ builder.Services.AddScoped<Supabase.Client>(_ => new Client(
         AutoConnectRealtime = true
     }
     ));
+
+// AUTO MAPPER
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

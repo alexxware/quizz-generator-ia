@@ -2,6 +2,7 @@ namespace QuizzGenerate.Dto.register;
 
 public class RegisterRequestDto
 {
+    public string? IdAuth { get; set; }
     public string Name { get; set; }
     public string LastName { get; set; }
     public string Email { get; set; }
