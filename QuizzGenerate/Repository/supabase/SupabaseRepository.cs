@@ -48,6 +48,15 @@ public class SupabaseRepository: ISupabaseRepository
             Console.WriteLine(e);
             return new TblUsers();
         }
-        
+    }
+
+    public async Task<TblUsers?> GetUser(string uid)
+    {
+        var response = await _client
+            .From<TblUsers>()
+            .Select(x => new object[] { x.Id, x.Name, x.LastName, x.Email })
+            .Where(x => x.IdAuth == uid)
+            .Single();
+        return response;
     }
 }
