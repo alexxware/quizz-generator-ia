@@ -1,4 +1,7 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using QuizzGenerate.Dto.login;
 using QuizzGenerate.Dto.register;
 using QuizzGenerate.Models.supabase;
 using QuizzGenerate.Repository.supabase;
@@ -36,5 +39,25 @@ public class SupabaseService: ISupabaseService
 
         var resMapped = _mapper.Map<RegisterResponseDto>(res);
         return resMapped;
+    }
+
+    public async Task<LoginResponseDto> SignInUser(LoginRequestDto user)
+    {
+        var response = await _respository.SignInUser(user.Email, user.Password);
+        if (response is not null)
+        {
+            return new LoginResponseDto
+            {
+                HasError = false,
+                Message = string.Empty,
+                Uid = response.User.Id
+            };
+        }
+
+        return new LoginResponseDto
+        {
+            HasError = true,
+            Message = "Correo o contraseña no validos o no existen."
+        };
     }
 }

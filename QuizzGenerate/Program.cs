@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.Options;
 using QuizzGenerate.Configuration;
+using QuizzGenerate.Dto.login;
 using QuizzGenerate.Dto.register;
 using QuizzGenerate.Mappers;
 using QuizzGenerate.Models;
@@ -43,6 +44,7 @@ builder.Services.AddScoped<ISupabaseRepository, SupabaseRepository>();
 
 // VALIDATORS
 builder.Services.AddScoped<IValidator<RegisterRequestDto>, RegisterUserValidator>();
+builder.Services.AddScoped<IValidator<LoginRequestDto>, LoginUserValidator>();
 
 // SUPABASE
 builder.Services.Configure<SupabaseSettings>(

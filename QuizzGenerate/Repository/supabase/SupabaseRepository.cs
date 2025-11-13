@@ -23,7 +23,7 @@ public class SupabaseRepository: ISupabaseRepository
         return response?.User?.Id ?? "";
     }
 
-    public async Task<object?> SignInUser(string email, string password)
+    public async Task<Session?> SignInUser(string email, string password)
     {
         var response = await _client.Auth.SignIn(email, password);
         return response;
