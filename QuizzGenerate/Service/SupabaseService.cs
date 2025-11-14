@@ -50,8 +50,10 @@ public class SupabaseService: ISupabaseService
             return new LoginResponseDto
             {
                 HasError = false,
-                Message = string.Empty,
-                Uid = response.User.Id
+                Message = "Inicio de sesion exitoso",
+                Uid = response.User?.Id,
+                AccessToken = response.AccessToken,
+                RefreshToken = response.RefreshToken
             };
         }
 
@@ -88,5 +90,30 @@ public class SupabaseService: ISupabaseService
             HasError = false,
             Menssage = string.Empty
         };
+    }
+
+    public async Task<RefreshResponseDto> RefreshToken(string refreshToken, string accessToken)
+    {
+        var newSession = await _respository.RefreshToken(refreshToken, accessToken);
+        if (newSession is null)
+        {
+            return new RefreshResponseDto
+            {
+                HasError = true,
+                Message = "Se requiere iniciar sesion de nuevo"
+            };
+        }
+
+        return new RefreshResponseDto
+        {
+            AccessToken = newSession.AccessToken,
+            RefreshToken = newSession.RefreshToken,
+            HasError = false
+        };
+    }
+
+    public Task<bool> SignOutUser()
+    {
+        return _respository.SignOutUser();
     }
 }

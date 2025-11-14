@@ -3,6 +3,7 @@ using QuizzGenerate.Configuration;
 using QuizzGenerate.Dto.register;
 using QuizzGenerate.Models.supabase;
 using Supabase.Gotrue;
+using Supabase.Gotrue.Exceptions;
 using Client = Supabase.Client;
 
 namespace QuizzGenerate.Repository.supabase;
@@ -58,5 +59,41 @@ public class SupabaseRepository: ISupabaseRepository
             .Where(x => x.IdAuth == uid)
             .Single();
         return response;
+    }
+
+    public async Task<Session?> RefreshToken(string refreshToken, string accessToken)
+    {
+        try
+        {
+            var newSession = await _client.Auth.SetSession(
+                accessToken,
+                refreshToken,
+                true);
+            return newSession;
+        }
+        catch (GotrueException ex)
+        {
+            Console.WriteLine($"Error Gotrue al refrescar: {ex.Message}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al refrescar el token: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<bool> SignOutUser()
+    {
+        try
+        {
+            await _client.Auth.SignOut();
+            return true;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error al cerrar sesion: {e.Message}");
+            return false;
+        }
     }
 }

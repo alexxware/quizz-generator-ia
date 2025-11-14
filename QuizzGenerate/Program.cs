@@ -62,17 +62,6 @@ builder.Services.AddScoped<Client>(sp =>
     client.InitializeAsync().Wait();
     return client;
 });
-/*
-builder.Services.AddScoped<Supabase.Client>(_ => new Client(
-    builder.Configuration["Supabase:Url"],
-    builder.Configuration["Supabase:SupKey"],
-    new SupabaseOptions
-    {
-        AutoRefreshToken = true,
-        AutoConnectRealtime = true
-    }
-    ));
-*/
 
 // AUTO MAPPER
 builder.Services.AddAutoMapper(typeof(MappingProfile));
