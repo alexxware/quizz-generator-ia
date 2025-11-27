@@ -1,5 +1,8 @@
+using System.Text;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using QuizzGenerate.Configuration;
 using QuizzGenerate.Dto.login;
 using QuizzGenerate.Dto.register;
@@ -20,7 +23,56 @@ builder.Configuration
     .AddUserSecrets<Program>(optional: true)
     .AddEnvironmentVariables();
 
-//config front
+// jwt
+/*
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    var baseUrl = builder.Configuration["Supabase:Url"];
+    options.Authority = $"{baseUrl}/auth/v1";
+    options.RequireHttpsMetadata = true;
+
+    var supabaseJwtSecret = builder.Configuration["Supabase:JwtSecret"];
+    var signInKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(supabaseJwtSecret!));
+    
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateAudience = true,
+        ValidAudience = "authenticated",
+        ValidateIssuer = true,
+        ValidIssuer = options.Authority,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = signInKey
+    };
+});*/
+
+var supabaseUrl = builder.Configuration["Supabase:Url"];
+var jwtSecret = builder.Configuration["Supabase:JwtSecret"];
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        //var baseUrl = builder.Configuration["Supabase:Url"];
+        //options.Authority = $"{baseUrl}/auth/v1";
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidIssuer = $"{supabaseUrl}/auth/v1",
+            ValidAudience = "authenticated",
+            ValidateAudience = true,
+            ValidateIssuer = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+// CORS
 builder.Services.AddCors(option =>
 {
     option.AddPolicy("AllowAngularDev", policy =>
@@ -47,10 +99,10 @@ builder.Services.AddScoped<IValidator<RegisterRequestDto>, RegisterUserValidator
 builder.Services.AddScoped<IValidator<LoginRequestDto>, LoginUserValidator>();
 
 // SUPABASE
-builder.Services.Configure<SupabaseSettings>(
+/*builder.Services.Configure<SupabaseSettings>(
     builder.Configuration.GetSection("Supabase"));
 
-builder.Services.AddScoped<Client>(sp =>
+builder.Services.AddSingleton<Client>(sp =>
 {
     var config = sp.GetRequiredService<IOptions<SupabaseSettings>>().Value;
     var options = new SupabaseOptions
@@ -59,10 +111,24 @@ builder.Services.AddScoped<Client>(sp =>
         AutoConnectRealtime = true
     };
     var client = new Client(config.Url, config.AnonKey, options);
-    client.InitializeAsync().Wait();
+    client.InitializeAsync();
     return client;
 });
+*/
+builder.Services.Configure<SupabaseSettings>(
+    builder.Configuration.GetSection("Supabase"));
 
+builder.Services.AddSingleton<Client>(sp =>
+{
+    var cfg = sp.GetRequiredService<IOptions<SupabaseSettings>>().Value;
+    var opts = new SupabaseOptions
+    {
+        AutoRefreshToken = true,
+        AutoConnectRealtime = false
+    };
+
+    return new Client(cfg.Url, cfg.AnonKey, opts);
+});
 // AUTO MAPPER
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -73,6 +139,9 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+var supabase = app.Services.GetRequiredService<Client>();
+await supabase.InitializeAsync();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -82,6 +151,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseCors("AllowAngularDev");

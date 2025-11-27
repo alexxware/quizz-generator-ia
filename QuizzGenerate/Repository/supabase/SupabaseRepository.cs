@@ -26,7 +26,13 @@ public class SupabaseRepository: ISupabaseRepository
 
     public async Task<Session?> SignInUser(string email, string password)
     {
-        var response = await _client.Auth.SignIn(email, password);
+        var response = await _client.Auth.SignInWithPassword(email, password);
+
+        if (response is not null)
+        {
+            await _client.Auth.SetSession(response.AccessToken!, response.RefreshToken!, true);
+            
+        }
         return response;
     }
 
@@ -34,14 +40,9 @@ public class SupabaseRepository: ISupabaseRepository
     {
         try
         {
-            var options = new Supabase.SupabaseOptions
-            {
-                AutoRefreshToken = true,
-            };
-            var client = new Supabase.Client(_settings.Url,
-                _settings.ServiceRoleKey,
-                options);
-            var response = await client.From<TblUsers>().Insert(user);
+            var response = await _client
+                .From<TblUsers>()
+                .Insert(user);
             return response.Models.FirstOrDefault();
         }
         catch (Exception e)
@@ -53,16 +54,19 @@ public class SupabaseRepository: ISupabaseRepository
 
     public async Task<TblUsers?> GetUser(string uid)
     {
-        var response = await _client
+        var user = await _client
             .From<TblUsers>()
-            .Select(x => new object[] { x.Id, x.Name, x.LastName, x.Email })
-            .Where(x => x.IdAuth == uid)
+            .Where(u => u.IdAuth == uid)
             .Single();
-        return response;
+
+        return user;
     }
 
     public async Task<Session?> RefreshToken(string refreshToken, string accessToken)
     {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            return null;
+        
         try
         {
             var newSession = await _client.Auth.SetSession(
@@ -83,10 +87,16 @@ public class SupabaseRepository: ISupabaseRepository
         }
     }
 
-    public async Task<bool> SignOutUser()
+    public async Task<bool> SignOutUser(string refreshToken, string accessToken)
     {
+        if (string.IsNullOrWhiteSpace(refreshToken) || string.IsNullOrWhiteSpace(accessToken))
+        {
+            return false;
+        }
+        
         try
         {
+            await _client.Auth.SetSession(accessToken, refreshToken, true);
             await _client.Auth.SignOut();
             return true;
         }

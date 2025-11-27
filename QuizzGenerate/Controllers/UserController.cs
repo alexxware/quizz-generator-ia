@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuizzGenerate.Dto.user;
 using QuizzGenerate.Service;
@@ -14,17 +16,21 @@ public class UserController : ControllerBase
     {
         _supabaseService = service;
     }
-    [HttpPost]
-    public async Task<ActionResult> GetUser([FromBody] GetUserDto user)
+    
+    [Authorize]
+    [HttpGet]
+    public async Task<ActionResult> GetUser()
     {
-        if (user.Id.Length == 0 )
+        var authenticatedUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(authenticatedUserId))
         {
-            return BadRequest("Id is empty.");
+            return Unauthorized("Usuario no identificado, requiere inicio de sesion.");
         }
-        var response = await _supabaseService.GetUser(user.Id);
+
+        var response = await _supabaseService.GetUser(authenticatedUserId);
         if (response.HasError)
         {
-            return Conflict(response.Menssage);
+            return NotFound(response.Menssage);
         }
 
         return Ok(response.User);

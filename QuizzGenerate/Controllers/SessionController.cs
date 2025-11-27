@@ -74,9 +74,19 @@ public class SessionController : ControllerBase
     [HttpPost("LogOut")]
     public async Task<ActionResult> LogOut()
     {
-        await _supabaseService.SignOutUser();
+        var refreshToken = Request.Cookies["refresh_token"];
+        var expiredAccessToken = Request.Cookies["access_token_client"];
+        
+        var wasSignedOut = await _supabaseService.SignOutUser(refreshToken!, expiredAccessToken!);
+        
         HttpContext.Response.Cookies.Delete("refresh_token");
         HttpContext.Response.Cookies.Delete("access_token_client");
+
+        if (!wasSignedOut)
+        {
+            return BadRequest("No se pudo cerrar la sesión en el servidor");
+        }
+
         return Ok(new { Message = "Sesión cerrada exitosamente." });
     }
 

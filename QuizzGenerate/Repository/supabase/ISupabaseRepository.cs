@@ -11,6 +11,6 @@ public interface ISupabaseRepository
     Task<TblUsers?> InsertUser(TblUsers user);
     Task<TblUsers?> GetUser(string uid);
     Task<Session?> RefreshToken(string refreshToken, string accessToken);
-    Task<bool> SignOutUser();
+    Task<bool> SignOutUser(string refreshToken, string accessToken);
 
 }

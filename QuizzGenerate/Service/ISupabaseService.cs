@@ -11,5 +11,5 @@ public interface ISupabaseService
     Task<LoginResponseDto> SignInUser(LoginRequestDto user);
     Task<ResponseUserDto> GetUser(string uid);
     Task<RefreshResponseDto> RefreshToken(string refreshToken, string accessToken);
-    Task<bool> SignOutUser();
+    Task<bool> SignOutUser(string refreshToken, string accessToken);
 }

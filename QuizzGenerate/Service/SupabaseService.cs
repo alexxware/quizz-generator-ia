@@ -112,8 +112,8 @@ public class SupabaseService: ISupabaseService
         };
     }
 
-    public Task<bool> SignOutUser()
+    public Task<bool> SignOutUser(string refreshToken, string accessToken)
     {
-        return _respository.SignOutUser();
+        return _respository.SignOutUser(refreshToken, accessToken);
     }
 }
